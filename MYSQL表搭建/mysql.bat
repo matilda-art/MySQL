@@ -1,1 +1,1 @@
-@java -cp "E:\代码\111\MYSQL表搭建\out\production\MYSQL表搭建" com.MySQLClient %*
+@java -cp "E:\代码\MYSQL\MYSQL表搭建\out\production\MYSQL表搭建;E:\代码\MYSQL\MYSQL表搭建\lib\mysql-connector-java-5.1.47.jar" com.MySQLClient %*
