@@ -1,0 +1,1 @@
+@java -cp "E:\代码\111\MYSQL表搭建\out\production\MYSQL表搭建" com.MySQLClient %*
