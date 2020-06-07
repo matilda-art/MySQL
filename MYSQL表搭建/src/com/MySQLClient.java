@@ -26,34 +26,54 @@ public class MySQLClient {
             printUsageAndExit();//使用说明，打印有哪些参数并退出
         }
 
-        //对配置进行替换
+        //解析参数，获取连接数据库的信息
         parseArguments(args);
 
         //1.进行数据库连接
         Class.forName("com.mysql.jdbc.Driver");
-        String ur1 = String.format("jdbc:mysql://%s:%d/%s?useSSL=false&charsetEncoding=utf8",
+        String url = String.format("jdbc:mysql://%s:%d/%s?useSSL=false&charsetEncoding=utf8",
                 host,port,defaultDatabaseName);
+        System.out.println("DEBUG: url = " + url);
+        System.out.println("DEBUG: user = " + user);
+        System.out.println("DEBUG: password = " + password);
         try {
-            Connection connection = DriverManager.getConnection(ur1,user,password);
+            //一次连接
+            Connection connection = DriverManager.getConnection(url,user,password);
             printWelcome();
 
             Scanner scanner = new Scanner(System.in);
 
+            //进入之前所谓的mysql界面
             System.out.println("mysql > ");
+            //一次连接，多次 sql 执行
             while (true){
                 String cmd = scanner.nextLine();
+                //模拟，使用 quit 可以退出
+                //quit 不需要输入 分号
                 if (cmd.equalsIgnoreCase("quit")){
                     break;
                 }
 
+                //模拟真实的 mysql 中，不输入分号，一行命令就不结束的现象
+                if(!cmd.endsWith(";")){
+                    System.out.println("    ->");
+                    cmd += scanner.nextLine();
+                }
+                //分号只是mysql程序的要求，不是SQL语言的要求
+                cmd = cmd.substring(0,cmd.length()-1);
+                System.out.println("DEBUG: "+cmd);
+
+                //select 和 show 开头的 sql，是会返回结果的
+                //所以使用，带 ResultSet 的查询方式
+                //否则，使用 executeUpdate 的执行方式
+                //多次 sql 执行
                 if (cmd.startsWith("select") || cmd.startsWith("show")) {
                     executeQuery(connection, cmd);
                 } else {
                     executeUpdate(connection, cmd);
                 }
 
-
-                System.out.println("mysql > ");
+                System.out.println("mysql> ");
             }
             connection.close();
         }catch (SQLException e){
@@ -61,22 +81,50 @@ public class MySQLClient {
         }
     }
 
-    private static void executeUpdate(Connection connection, String cmd) {
+    private static void executeUpdate(Connection connection, String cmd) throws SQLException {
+        Statement statement = connection.createStatement();
+        int n = statement.executeUpdate("insert into exam_result (id, name, math) values ('11', '小陈', '88')");
+
+        System.out.println(n);
     }
 
     private static void executeQuery(Connection connection, String cmd) throws SQLException {
+        long b = System.currentTimeMillis();
+
         Statement statement = connection.createStatement();
         ResultSet resultSet = statement.executeQuery(cmd);
+        //利用结果集中的 “元数据 MetaData” 获取一些基本信息
+        //一共有多少列
+        //每一列的名称是什么
         int columnCount = resultSet.getMetaData().getColumnCount();
+        //打印表头 - 打印列的名称
+        for (int i = 0; i < columnCount; i++) {
+            String label = resultSet.getMetaData().getColumnLabel(i + 1);
+            if (i != columnCount - 1) {
+                System.out.print(label + ", ");
+            } else {
+                System.out.println(label);
+            }
+        }
+        //依次去遍历每一行，打印每一行的结果
+        int rowCount = 0;
         while (resultSet.next()) {
+            rowCount++;
             for (int i = 0; i < columnCount; i++) {
                 String value = resultSet.getString(i + 1);
-                System.out.print(value + ",");
+                if (i != columnCount - 1) {
+                    System.out.print(value + ", ");
+                } else {
+                    System.out.println(value);
+                }
             }
-            System.out.println();
         }
-        statement.close();
 
+        long e = System.currentTimeMillis();
+        System.out.printf("%d rows in set (%.2f sec)%n", rowCount, (e - b) / 1000.0);
+
+        resultSet.close();
+        statement.close();
     }
 
     private static void printWelcome() {
