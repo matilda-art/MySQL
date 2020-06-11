@@ -13,11 +13,6 @@ import java.util.Scanner;
  **/
 
 public class Main {
-    // 当前的登录用户信息
-    // 没有登录 user == null
-    // 否则，指向具体的用户对象
-    //private static User user = null;
-
     private static List<String> featureList = new ArrayList<>();
     private static List<Action> actionList = new ArrayList<>();
 
@@ -27,20 +22,18 @@ public class Main {
         featureList.add("查看文章列表-按照发表时间倒序给出");
         featureList.add("发表文章-要求先登录");
         featureList.add("查看指定文章内容");
+
+        
         featureList.add("评论指定文章-要求先登录");
         featureList.add("点赞指定文章-要求先登录");
     }
 
-    // 用户注册的实现类
-    static class UserRegisterAction implements Action {
-        @Override
-        public void run() {
-            userRegister();
-        }
-    }
-
     private static void initActionList() {
         actionList.add(new UserRegisterAction());
+        actionList.add(new UserLoginAction());
+        actionList.add(new ArticleListAction());
+        actionList.add(new ArticlePublishAction());
+        actionList.add(new ArticleDetailAction());
     }
 
     public static void main(String[] args) {
@@ -52,6 +45,7 @@ public class Main {
             showMenu();
             showPrompt();
             int select = scanner.nextInt();
+            // 分发
             doAction(select);
         }
     }
@@ -82,9 +76,4 @@ public class Main {
         }
         System.out.println("  0. 退出");
     }
-
-    private static void userRegister() {
-        System.out.println("开始用户注册");
-    }
 }
-
